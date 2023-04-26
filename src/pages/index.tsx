@@ -28,21 +28,21 @@ const Home = (props) => {
 
   return (
     <>
-      {/* <Head>
+       {/* <Head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
       </Head>
       <div className={styles.container}>
         <StyledBoxMainContainer>
           <div className={styles.contentWrapper}>
             <StyledBoxContent>
-              <div className={styles.ribbonContainer}> */}
+              <div className={styles.ribbonContainer}>  */}
                 <Ribbon  onButtonClick={handleButtonClick} />
               {/* </div>
               {props.children}
             </StyledBoxContent>
           </div>
         </StyledBoxMainContainer>
-      </div> */}
+      </div>  */}
     </>
   );
 };

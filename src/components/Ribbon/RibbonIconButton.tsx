@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Box } from "@chakra-ui/react";
+import { Menu, MenuButton, MenuItem, Image } from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 
 interface RibbonIconButtonProps {
   icon: React.ReactNode;
@@ -15,24 +16,30 @@ const RibbonIconButton: React.FC<RibbonIconButtonProps> = ({
   textPosition = "right",
 }) => {
   return (
-    <Button
-      onClick={onClick}
-      padding="0.5"
-      minWidth="auto"
-      minHeight="auto"
-      textTransform="none"
-      _hover={{ textDecoration: "none" }}
-    >
-      <Box display="flex" alignItems="center">
-        {textPosition === "left" && (
-          <Box fontSize="0.8rem" mr="0.5rem">{caption}</Box>
-        )}
+    <Menu isLazy>
+      <MenuItem minH='24px'
+        fontSize="0.6rem"
+        fontWeight="semibold"
+        padding="0.5rem 1.5rem"
+        borderRadius="4px 4px 4px 4px"
+        borderTop="1px solid #E2E8F0"
+        borderLeft="1px solid #E2E8F0"
+        borderRight="1px solid #E2E8F0"
+        borderBottom={"1px solid #E2E8F0"}
+        backgroundColor={"#FAFCFF"}
+        color={"#0078d4"}
+        cursor="pointer"
+        _hover={{ backgroundColor: "#f5f5f5" }}
+        as="button"
+        px={2}
+        py={2}
+        onClick={onClick}
+      >
         {icon}
-        {textPosition === "right" && (
-          <Box fontSize="0.8rem" ml="0.5rem">{caption}</Box>
-        )}
-      </Box>
-    </Button>
+        <span style={{ marginLeft: "4px" }}>{caption}</span>
+      </MenuItem>
+      
+    </Menu>
   );
 };
 

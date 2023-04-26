@@ -21,6 +21,7 @@
     position: sticky;
     top: 64px;
     z-index: 1100;
+    overflow: auto;
   }
   
   @media (max-width: 599px) {

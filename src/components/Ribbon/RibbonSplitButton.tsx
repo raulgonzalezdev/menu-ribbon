@@ -7,7 +7,6 @@ import {
   MenuButton,
   MenuList,
   Box,
-  VStack,
   Divider,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
@@ -47,10 +46,24 @@ const RibbonSplitButton: React.FC<RibbonSplitButtonProps> = ({
 
   return (
     <Box>
-      <Menu>
+      <Menu isLazy>
         <ButtonGroup>
           {!displayIcon && (
-            <Button onClick={handleClick}>
+            <Button
+              fontSize="0.8rem"
+              fontWeight="bold"
+              padding="0.5rem 1.5rem"
+              borderRadius="4px 4px 4px 4px"
+              borderTop="1px solid #E2E8F0"
+              borderLeft="1px solid #E2E8F0"
+              borderRight="1px solid #E2E8F0"
+              borderBottom={"1px solid #E2E8F0"}
+              backgroundColor={"#FAFCFF"}
+              color={"#0078d4"}
+              cursor="pointer"
+              _hover={{ backgroundColor: "#f5f5f5" }}
+              onClick={handleClick}
+            >
               {options && options[selectedIndex] ? (
                 <React.Fragment>
                   {typeof options[selectedIndex] === "string"
@@ -62,7 +75,22 @@ const RibbonSplitButton: React.FC<RibbonSplitButtonProps> = ({
               )}
             </Button>
           )}
-          <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+          <MenuButton
+            fontSize="0.8rem"
+            fontWeight="bold"
+            padding="0.5rem 1.5rem"
+            borderRadius="4px 4px 4px 4px"
+            borderTop="1px solid #E2E8F0"
+            borderLeft="1px solid #E2E8F0"
+            borderRight="1px solid #E2E8F0"
+            borderBottom={"1px solid #E2E8F0"}
+            backgroundColor={"#FAFCFF"}
+            color={"#0078d4"}
+            cursor="pointer"
+            _hover={{ backgroundColor: "#f5f5f5" }}
+            as={Button}
+            rightIcon={<ChevronDownIcon />}
+          >
             {icon && <Box mr="0.25rem">{icon}</Box>}
           </MenuButton>
         </ButtonGroup>

@@ -18,6 +18,7 @@ const CustomRibbonButtonGroup: React.FC<CustomRibbonButtonGroupProps> = ({
       flexDirection="column"
       alignItems="center"
       mx="1"
+      minWidth="auto" // Agrega esta línea
     >
       <Box
         display="inline-flex"
@@ -28,14 +29,15 @@ const CustomRibbonButtonGroup: React.FC<CustomRibbonButtonGroupProps> = ({
         boxShadow="inset 0 0 3px rgba(0, 0, 0, 0.1)"
         p="1"
         sx={style}
+        minWidth="auto" // Agrega esta línea
       >
         {children}
       </Box>
-      {caption && (
+      {/* {caption && (
         <Text fontSize="10px" color="#666" textAlign="center" whiteSpace="nowrap" mt="2">
           {caption}
         </Text>
-      )}
+      )} */}
     </Box>
   );
 };

@@ -1,68 +1,45 @@
 import React, { useCallback } from "react";
 import {
   Box,
-  Stack,
   Tabs,
   TabList,
   Tab,
   TabPanels,
-  useTheme,
   TabPanel,
-  IconButton,
-  Input,
-  Textarea,
-  Select,
-  Switch,
-  MenuItem,
-  useMediaQuery,
-  useBreakpointValue,
-  Stepper,
+  Flex,
+ } from "@chakra-ui/react";
+import * as ChakraUIComponents from "@chakra-ui/react";
 
-} from "@chakra-ui/react";
-import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
-import { ribbonTabs } from "./ribbonTabs";
-import CustomRibbonButton from "./CustomRibbonButton";
+import { ribbonTabs } from "./ribbonData";
+import CustomRibbonButton from "./CustomRibbonComponent";
 import CustomRibbonButtonGroup from "./CustomRibbonButtonGroup";
 import RibbonSplitButton from "./RibbonSplitButton";
 import RibbonIconButton from "./RibbonIconButton";
-import RibbonButon from "./RibbonButton"
+import RibbonButton from "./RibbonButton";
+import {
+  RibbonProps,
+  RibbonButtonGroup,
+  RibbonIconProps,
+  RibbonButton as RibbonButtonType,
+} from "./interfaces";
 
-import Link from "next/link";
-import { ChakraProvider, extendTheme } from "@chakra-ui/react";
-import { RibbonProps, RibbonButtonGroup, RibbonIconProps, ButtonProps, RibbonButton } from './interfaces';
-
-const convertIconName = (iconName: string) => {
-  return iconName;
-};
-
-const Ribbon: React.FC<RibbonProps> = ({  customTabs, onButtonClick }) => {
-
-  const theme = extendTheme({
-    palette: {
-       primary: {
-         main: '#1b5a90'
-       },
-    
-     },
-   });
- 
+const Ribbon: React.FC<RibbonProps> = ({ customTabs, onButtonClick }) => {
   const tabsToUse = customTabs ? customTabs : ribbonTabs ? ribbonTabs : [];
   const [selectedTabIndex, setSelectedTabIndex] = React.useState(0);
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [selectedPanelContent, setSelectedPanelContent] = React.useState(null);
 
-  const componentMap: { [key: string]: any } = {
-    Input: Input,
-    TextArea: Textarea,
-    Select: Select,
-    Switch: Switch,
-  };
+
+  React.useEffect(() => {
+    setSelectedPanelContent(tabsToUse[0]?.buttonGroups);
+  }, [tabsToUse]);
 
   
   const RibbonIcon = ({ iconName }: RibbonIconProps) => {
     if (!iconName) {
       return { iconComponent: null, displayIcon: false };
     }
-    const IconComponent = require("@mui/icons-material")[convertIconName(iconName)];
+
+    const IconComponent = require("@mui/icons-material")[iconName];
 
     if (!IconComponent) {
       return { iconComponent: null, displayIcon: false };
@@ -71,231 +48,220 @@ const Ribbon: React.FC<RibbonProps> = ({  customTabs, onButtonClick }) => {
     return { iconComponent: <IconComponent />, displayIcon: true };
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setSelectedTabIndex(newValue);
+  const RibbonIconComponent = ({ iconName }: RibbonIconProps) => {
+    const { iconComponent } = RibbonIcon({ iconName });
+    return iconComponent;
   };
 
-  const StyledMobileStepper = (otherProps) => {
-    const theme = useTheme();
-    const stepperStyle = {
-      flexGrow: 1,
-      backgroundColor: theme.colors.background,
-      padding: 0,
-    };
-    return <Stepper style={stepperStyle} {...otherProps} />;
-  };
+  const renderButton = useCallback(
+    (button: RibbonButtonType, index: number) => {
+     
+      const ribbonIconResult = RibbonIcon({ iconName: button.icon });
+
+      const buttonProps = {
+        buttonKey: index,
+        caption: button.caption,
+        icon: ribbonIconResult.iconComponent,
+        displayIcon: ribbonIconResult.displayIcon, // Agrega esta línea
+        onClick: () => {
+          console.log(`Clic en el botón: ${button.icon}`);
+          button.onClick && button.onClick();
+          onButtonClick && onButtonClick(button);
+        },
+      };
+
+      switch (button.type) {
+        case "RibbonButton":
+          return <RibbonButton {...buttonProps} />;
+        case "RibbonIconButton":
+          return <RibbonIconButton {...buttonProps} />;
+        case "RibbonSplitButton":
+          const splitButtonOptions = button.dropdownItems
+            ? button.dropdownItems.map((item) => item.caption)
+            : [];
+          const ribbonIconResult = RibbonIcon({ iconName: button.icon });
+
+          return (
+            <RibbonSplitButton
+              key={index}
+              options={splitButtonOptions}
+              defaultSelectedIndex={button.defaultSelectedIndex}
+              icon={ribbonIconResult.iconComponent}
+              displayIcon={ribbonIconResult.displayIcon}
+            />
+          );
+        default:
+          return null;
+      }
+    },
+    [onButtonClick]
+  );
+
+  const renderReactComponent = useCallback(
+    (button: RibbonButtonType, index: number) => {
+      const Component = getChakraComponent(button.component);
   
-  const renderReactComponent = useCallback((button: RibbonButton, index: number) => {
-    const Component = button.component ? componentMap[button.component] : undefined;
-    if (!Component) return null;
-    const wrappedComponent =
-      button.component === "Select" ? (
-        <Component onChange={button.onChange}>
-          {button.options.items.map((item: { value: string | number | readonly string[] | undefined; label: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactFragment | React.ReactPortal | null | undefined; }, itemIndex: React.Key | null | undefined) => (
-            <MenuItem key={itemIndex} value={item.value}>
-              {item.label}
-            </MenuItem>
-          ))}
-        </Component>
-      ) : (
-        <Component {...button.options} onChange={button.onChange} />
-      );
-
-    return (
-      <div
-        style={{ display: "inline-flex", flexDirection: "row" }}
-        key={index}
-      >
-        <CustomRibbonButton caption={button.caption}>
-          {wrappedComponent}
-        </CustomRibbonButton>
-      </div>
-    );
-  }, []);
-  
-  const renderButton = useCallback((button: RibbonButton, index: number) => {
-    if (button.component && componentMap[button.component]) {
-      return renderReactComponent(button, index);
-    }
-    const ribbonIconResult = RibbonIcon({ iconName: button.icon });
-    const buttonProps = {
-      buttonKey: index,
-      caption: button.caption,
-      icon: ribbonIconResult.iconComponent,
-      onClick: () => {
-        console.log(`Clic en el botón: ${button.icon}`);
-        button.onClick && button.onClick();
-        //@ts-ignore
-        onButtonClick && onButtonClick(button);
-     },
-    };
-
-    switch (button.type) {
-      case "RibbonButton":
-        return <RibbonButton {...buttonProps} />;
-      case "RibbonIconButton":
-        return <RibbonIconButton {...buttonProps} />;
-      case "RibbonSplitButton":
-        const splitButtonOptions = button.dropdownItems
-          ? button.dropdownItems.map((item) => item.caption)
-          : [];
-
-        const ribbonIconResult = RibbonIcon({ iconName: button.icon });
-        return (
-          <RibbonSplitButton
-            key={index}
-            options={splitButtonOptions}
-            defaultSelectedIndex={button.defaultSelectedIndex}
-            icon={ribbonIconResult.iconComponent}
-            displayIcon={ribbonIconResult.displayIcon}
-          />
+      if (!Component) return null;
+      const wrappedComponent =
+        button.component === "Select" ? (
+          <Component onChange={button.onChange}>
+            {button.options.items.map((item, itemIndex) => (
+              <option key={itemIndex} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </Component>
+        ) : (
+          <Component {...button.options} onChange={button.onChange} />
         );
-      default:
-        return null;
-    }
-  }, [onButtonClick]);
+  
+      return (
+        <div
+          style={{ display: "inline-flex", flexDirection: "row" }}
+          key={index}
+        >
+          <CustomRibbonButton caption={button.caption}>
+            {wrappedComponent}
+          </CustomRibbonButton>
+        </div>
+      );
+    },
+    []
+  );
+  
+  
+  const getChakraComponent = (componentName) => {
+    return ChakraUIComponents[componentName];
+  };
+  
 
-  const wrapWithLink = (button: RibbonButton, buttonComponent: string | number | boolean | JSX.Element | React.ReactFragment | null | undefined) => {
-    return button.route ? (
-      <Link href={button.route}>
-        <span style={{ textDecoration: 'none', cursor: 'pointer' }}>{buttonComponent}</span>
-      </Link>
-    ) : (
-      buttonComponent
-    );
+  const MyTab = ({ selected, children, ...rest }) => (
+    <Tab
+      fontSize="0.8rem"
+      fontWeight="bold"
+      padding="0.5rem 0.75rem"
+      borderRadius="6px 6px 0 0"
+      borderTop="1px solid #E2E8F0"
+      borderLeft="1px solid #E2E8F0"
+      borderRight="1px solid #E2E8F0"
+      borderBottom={selected ? "1px solid transparent" : "1px solid #E2E8F0"}
+      backgroundColor={selected ? "#F7FAFC" : ""}
+      color={selected ? "#0078d4" : "#4A5568"}
+      cursor="pointer"
+      _hover={{ backgroundColor: "#f5f5f5" }}
+      {...rest}
+    >
+      {children}
+    </Tab>
+  );
+
+   
+  const renderButtonsWithFlexDirection = (
+    flexDirection: string,
+    buttons: RibbonButtonType[]
+  ) => {
+    if (flexDirection === "column") {
+      const buttonRows: JSX.Element[] = [];
+  
+      for (let i = 0; i < buttons.length; i += 2) {
+        const button1 =
+          buttons[i].type === "RibbonReactComponent"
+            ? renderReactComponent(buttons[i], i)
+            : renderButton(buttons[i], i);
+        const button2 =
+          i + 1 < buttons.length
+            ? buttons[i + 1].type === "RibbonReactComponent"
+              ? renderReactComponent(buttons[i + 1], i + 1)
+              : renderButton(buttons[i + 1], i + 1)
+            : null;
+  
+        buttonRows.push(
+          <Box key={i} display="flex" flexDirection="row">
+            <Box mr="4px">{button1}</Box>
+            {button2 && <Box>{button2}</Box>}
+          </Box>
+        );
+      }
+  
+      return buttonRows;
+    } else {
+      return buttons.map((button, buttonIndex) => (
+        <Box key={buttonIndex} mr="4px">
+          {button.type === "RibbonReactComponent"
+            ? renderReactComponent(button, buttonIndex)
+            : renderButton(button, buttonIndex)}
+        </Box>
+      ));
+    }
   };
 
-  const renderButtons = useCallback((buttons: RibbonButton[], parentKey: React.Key | null | undefined = '') => {
-    return buttons.map((button, index) => {
-      const buttonElement = renderButton(button, index);
-      return (
-        <React.Fragment key={`${parentKey}-${index}`}>
-          {wrapWithLink(button, buttonElement)}
-        </React.Fragment>
-      );
-    });
-  }, [onButtonClick]);
-
-  const chunkArray = useCallback((array: any[], chunkSize: any) => {
-    const results = [];
-    while (array.length) {
-      results.push(array.splice(0, chunkSize));
-    }
-    return results;
-  }, []);
-
-
-const Ribbon: React.FC<RibbonProps> = ({ customTabs, onButtonClick }) => {
-  const tabsToUse = customTabs ? customTabs : ribbonTabs ? ribbonTabs : [];
-  const [selectedTabIndex, setSelectedTabIndex] = React.useState(0);
-  const isMobile = useBreakpointValue({ base: true, sm: false });
-
+  const WorkArea: React.FC = () => {
+    return (
+      <Box 
+      borderRadius="2px"
+      border="1px solid #e7e6e6"
+      boxShadow="inset 0 0 3px rgba(0, 0, 0, 0.1)"
+      padding="1px" 
+      backgroundColor="rgba(255, 255, 255, 0.8)"
+      overflowY="auto"
+       >
+        {selectedPanelContent &&
+          selectedPanelContent.map((group: RibbonButtonGroup, groupIndex) => (
+            <CustomRibbonButtonGroup
+              style={{
+                flexDirection: group.flexDirection,
+                paddingTop: "0.25rem",
+                paddingBottom: "0.25rem",
+                marginTop: groupIndex > 0 ? "4px" : "0",
+              }}
+              key={groupIndex}
+              caption={group.caption}
+            >
+              {renderButtonsWithFlexDirection(group.flexDirection, group.buttons)}
+            </CustomRibbonButtonGroup>
+          ))}
+      </Box>
+    );
+  };
+  
+  
+  
+  
   return (
     <>
-  <ChakraProvider theme={theme}>
-    <Tabs value={selectedTabIndex.toString()}>
-      {isMobile ? (
-        <StyledMobileStepper
-          activeStep={selectedTabIndex}
-          steps={ribbonTabs.length}
-          position="static"
-          nextButton={
-            <IconButton
-              size="sm"
-              onClick={() =>
-                setSelectedTabIndex((prev) =>
-                  prev === ribbonTabs.length - 1 ? 0 : prev + 1
-                )
-              }
-              aria-label="next"
-            >
-              <ArrowBackIcon />
-            </IconButton>
-          }
-          backButton={
-            <IconButton
-              size="sm"
-              onClick={() =>
-                setSelectedTabIndex((prev) =>
-                  prev === 0 ? ribbonTabs.length - 1 : prev - 1
-                )
-              }
-              aria-label="back"
-            >
-              <ArrowForwardIcon />
-            </IconButton>
-          }
-        />
-      ) : (
-        <Tabs
-          value={selectedTabIndex}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          {tabsToUse.map((tab, tabIndex) => (
-            <Tab
-              key={tabIndex}
-              label={tab.label}
-              iconPosition="start"
-              icon={RibbonIcon({ iconName: tab.icon }).iconComponent || undefined}
-            />
-          ))}
-        </Tabs>
-      )}
-
-      {tabsToUse.map((tab, tabIndex) => (
-        <TabPanel
-          key={tabIndex}
-          value={tabIndex.toString()}
-          id={`tabpanel-${tabIndex}`}
-          aria-labelledby={`tab-${tabIndex}`}
-        >
-          {tab.buttonGroups.map((group: RibbonButtonGroup, groupIndex: React.Key | null | undefined) => {
-            if (group.flexDirection === "column") {
-              const chunkedButtons = chunkArray([...group.buttons], 2);
-
-              return chunkedButtons.map((chunk, chunkIndex) => (
-                <CustomRibbonButtonGroup
-                  key={`${groupIndex}-${chunkIndex}`}
-                  style={{
-                    flexDirection: group.flexDirection,
-                    paddingTop: "0.5rem",
-                    paddingBottom: "0.5rem",
-                  }}
-                  caption={group.caption}
-                >
-                  {renderButtons(chunk, `${groupIndex}-${chunkIndex}`)}
-                </CustomRibbonButtonGroup>
-              ));
-            } else {
-              return (
-                <CustomRibbonButtonGroup
-                  key={groupIndex}
-                  style={{
-                    flexDirection: group.flexDirection,
-                    paddingTop: "0.5rem",
-                    paddingBottom: "0.5rem",
-                  }}
-                  caption={group.caption}
-                >
-                  {
-                    //@ts-ignore
-                    renderButtons(group.buttons, groupIndex)
-                  }
-                </CustomRibbonButtonGroup>
-              );
-            }
-          })}
-
-          
-        </TabPanel>
-      ))}
+    <Flex alignItems="stretch">
+    <Tabs
+     
+      index={selectedTabIndex}
+      onChange={(index) => {
+        setSelectedTabIndex(index);
+        setSelectedPanelContent(tabsToUse[index].buttonGroups);
+      } }
+    >
+      <TabList>
+        {tabsToUse.map((tab, tabIndex) => (
+          <MyTab key={tabIndex} selected={selectedTabIndex === tabIndex}>
+            {tab.icon && <RibbonIconComponent iconName={tab.icon} />}
+            {tab.label}
+          </MyTab>
+        ))}
+      </TabList>
+      <TabPanels  padding="0" >
+        {tabsToUse.map((tab, tabIndex) => (
+          <TabPanel
+            key={tabIndex}
+            paddingTop="0"
+          >
+            
+          </TabPanel>
+        ))}
+      </TabPanels>
     </Tabs>
-  </ChakraProvider>
-</>
-);
-
-};
-
-export default Ribbon;
+    </Flex>
+    <WorkArea />
+    </>
+  );
+  
+  };
+  
+  export default Ribbon;

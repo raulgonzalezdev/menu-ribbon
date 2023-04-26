@@ -207,15 +207,7 @@ export const ribbonTabs = [
               console.log("Input value:", event.target.value);
             },
           },
-          {
-            type: "RibbonReactComponent",
-            component: "TextArea",
-            caption: "TextArea",
-            options: { rows: 3 },
-            onChange: (event: ChangeEvent<HTMLInputElement>) => {
-              console.log("Text Area value:", event.target.value);
-            },
-          },
+          
           {
             type: "RibbonReactComponent",
             component: "Select",

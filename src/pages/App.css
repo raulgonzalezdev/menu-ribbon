@@ -1,0 +1,11 @@
+.app {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .menu-bar {
+    display: flex;
+    background-color: #f3f3f3;
+    border-bottom: 1px solid #ccc;
+    padding: 4px;
+  }
+  
